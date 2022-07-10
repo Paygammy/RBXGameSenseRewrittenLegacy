@@ -1,22 +1,23 @@
 shared.gamesense = shared.gamesense or {}
+
 for index, value in pairs(shared.gamesense) do
 	if typeof(value) == "RBXScriptConnection" then
 		value:Disconnect()
 	end
 end
 
-local a_0 = CFrame.new
-local a_1 = Color3.fromRGB
-local a_2 = Color3.fromHSV
-local a_3 = Vector2.new
-local a_4 = Vector3.new
-local a_5 = UDim.new
-local a_6 = UDim2.new
-local a_7 = math.deg
-local a_8 = math.atan2
-local a_9 = workspace.CurrentCamera
-local b_1 = string.gsub
-table.insert(shared.gamesense, workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() a_9 = workspace.CurrentCamera end))
+local CFnew = CFrame.new
+local fromRGB = Color3.fromRGB
+local fromHSV = Color3.fromHSV
+local Vec2new = Vector2.new
+local Vec3new = Vector3.new
+local UDnew = UDim.new
+local UD2new = UDim2.new
+local deg = math.deg
+local atan2 = math.atan2
+local currentCamera = workspace.CurrentCamera
+local s_gsub = string.gsub
+table.insert(shared.gamesense, workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() currentCamera = workspace.CurrentCamera end))
 
 local setting = {}
 
@@ -36,9 +37,9 @@ setting.sens = 0.2
 setting.drop = 0
 
 setting.hudtheme = {
-	tlockedcol = a_1(0, 172, 255),
-	tinviewcol = a_1(38, 255, 99),
-	toutviewcol = a_1(255, 37, 40)
+	tlockedcol = fromRGB(0, 172, 255),
+	tinviewcol = fromRGB(38, 255, 99),
+	toutviewcol = fromRGB(255, 37, 40)
 }
 
 setting.keybinds = {}
@@ -68,15 +69,34 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
-local GameSense = setmetatable({}, {})
+local GameSense = setmetatable({}, {
+	__call = function(self, ...)
+		return {
+			["Version"] = "1.3.01-a",
+			["Build Creator"] = {
+				["Name"] = Players:GetNameFromUserIdAsync(1708043824),
+				["UserId"] = 1708043824
+			},
+			["Contributers"] = {
+	
+			},
+			["Donors"] = {
+	
+			},
+		}
+	end
+})
 
 local getregistry = getreg or debug.registry
 local getupvalues = getupvalues or debug.getupvalues
 local islocalclosure = isourclosure or isexecutorclosure or is_synapse_function
 
 local function getvariablefromregistry(parameters)
+	if not _registryCache then _registryCache = getregistry() end
+
 	local variable
-	for _, f in pairs(getregistry()) do
+
+	for _, f in pairs(_registryCache) do
 		if typeof(f) == "function" and not islocalclosure(f) then
 			for _, t in pairs(getupvalues(f)) do
 				if type(t) == "table" then
@@ -93,48 +113,47 @@ local function getvariablefromregistry(parameters)
 			end
 		end
 	end
+
 	return variable
 end
 
 local placeid = game["PlaceId"]
 local town
 local phantomforces
+
 if table.find({299659045, 292439477, 3568020459}, placeid) then
-	phantomforces = {
-		network = getvariablefromregistry({"add", "send", "fetch"}),
-		camera = getvariablefromregistry({"currentcamera", "setfirstpersoncam", "setspectate"}),
-		replication = getvariablefromregistry({"getbodyparts"}),
-		hud = getvariablefromregistry({"getplayerpos", "isplayeralive"}),
-		characters = {},
-	}
-	phantomforces.characters = debug.getupvalue(phantomforces.replication.getbodyparts, 1)
+	local function getfuncs(retries)
+		if retries and retries > 10 then return end
+
+		phantomforces = {
+			network = getvariablefromregistry({"add", "send", "fetch"}),
+			camera = getvariablefromregistry({"currentcamera", "setfirstpersoncam", "setspectate"}),
+			replication = getvariablefromregistry({"getbodyparts"}),
+			hud = getvariablefromregistry({"getplayerpos", "isplayeralive"}),
+			characters = {},
+		}
+
+		if not phantomforces.network or not phantomforces.camera or not phantomforces.replication or not phantomforces.hud then
+			_registryCache = getregistry()
+			
+			return task.wait(1) and getfuncs(retries and retries + 1 or 1)
+		end
+
+		phantomforces.characters = debug.getupvalue(phantomforces.replication.getbodyparts, 1)
+	end
 end
 
 local localplayer
+
 while not (typeof(localplayer) == 'Instance' and localplayer:IsA('Player')) do
 	localplayer = Players.LocalPlayer
 end
+
 local playermouse = localplayer and localplayer:GetMouse() or (plugin and plugin:GetMouse()) or nil
 
 local MouseButtonsDown = {
 	["MouseButton2"] = false
 }
-
-getmetatable(GameSense)["__call"] = function(self, ...)
-	return {
-		["Version"] = "1.3.01-a",
-		["Build Creator"] = {
-			["Name"] = Players:GetNameFromUserIdAsync(1708043824),
-			["UserId"] = 1708043824
-		},
-		["Contributers"] = {
-
-		},
-		["Donors"] = {
-
-		},
-	}
-end
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Archivable = false
@@ -155,13 +174,13 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
 local Frame = Instance.new("Frame")
 Frame.Active = false
-Frame.AnchorPoint = a_3(0, 0)
+Frame.AnchorPoint = Vec2new(0, 0)
 Frame.Archivable = false
 Frame.AutoLocalize = false
 Frame.AutomaticSize = Enum.AutomaticSize.None
-Frame.BackgroundColor3 = a_1(248, 248, 248)
+Frame.BackgroundColor3 = fromRGB(248, 248, 248)
 Frame.BackgroundTransparency = 1
-Frame.BorderColor3 = a_1(17, 17, 17)
+Frame.BorderColor3 = fromRGB(17, 17, 17)
 Frame.BorderMode = Enum.BorderMode.Outline
 Frame.BorderSizePixel = 0
 Frame.ClipsDescendants = false
@@ -170,12 +189,12 @@ Frame.Parent = ScreenGui
 
 local TextLabel = Instance.new("TextLabel")
 TextLabel.Active = false
-TextLabel.AnchorPoint = a_3(0.5, 0.5)
+TextLabel.AnchorPoint = Vec2new(0.5, 0.5)
 TextLabel.Archivable = false
 TextLabel.AutoLocalize = false
-TextLabel.BackgroundColor3 = a_1(248, 248, 248)
+TextLabel.BackgroundColor3 = fromRGB(248, 248, 248)
 TextLabel.BackgroundTransparency = 1
-TextLabel.BorderColor3 = a_1(17, 17, 17)
+TextLabel.BorderColor3 = fromRGB(17, 17, 17)
 TextLabel.BorderMode = Enum.BorderMode.Outline
 TextLabel.BorderSizePixel = 0
 TextLabel.ClipsDescendants = false
@@ -184,16 +203,16 @@ TextLabel.LayoutOrder = 6
 TextLabel.LineHeight = 1
 TextLabel.MaxVisibleGraphemes = -1
 TextLabel.Name = "Status"
-TextLabel.Position = a_6(0.5, 0, 1, -125)
+TextLabel.Position = UD2new(0.5, 0, 1, -125)
 TextLabel.RichText = false
 TextLabel.Rotation = 0
 TextLabel.Selectable = false
-TextLabel.Size = a_6(0, 500, 0, 50)
+TextLabel.Size = UD2new(0, 500, 0, 50)
 TextLabel.Text = "On Standby"
-TextLabel.TextColor3 = a_1(248, 248, 248)
+TextLabel.TextColor3 = fromRGB(248, 248, 248)
 TextLabel.TextScaled = true
 TextLabel.TextSize = 24
-TextLabel.TextStrokeColor3 = a_1(17, 17, 17)
+TextLabel.TextStrokeColor3 = fromRGB(17, 17, 17)
 TextLabel.TextStrokeTransparency = 0.6
 TextLabel.TextTruncate = Enum.TextTruncate.None
 TextLabel.TextWrapped = true
@@ -207,12 +226,12 @@ function GameSense:DisplayMessage(Text, Duration, ExtraData)
 	coroutine.resume(coroutine.create(function()
 		local Clone = Instance.new("TextLabel")
 		Clone.Active = false
-		Clone.AnchorPoint = a_3(0.5, 0.5)
+		Clone.AnchorPoint = Vec2new(0.5, 0.5)
 		Clone.Archivable = false
 		Clone.AutoLocalize = false
-		Clone.BackgroundColor3 = a_1(248, 248, 248)
+		Clone.BackgroundColor3 = fromRGB(248, 248, 248)
 		Clone.BackgroundTransparency = 1
-		Clone.BorderColor3 = a_1(17, 17, 17)
+		Clone.BorderColor3 = fromRGB(17, 17, 17)
 		Clone.BorderMode = Enum.BorderMode.Outline
 		Clone.BorderSizePixel = 0
 		Clone.ClipsDescendants = false
@@ -221,16 +240,16 @@ function GameSense:DisplayMessage(Text, Duration, ExtraData)
 		Clone.LineHeight = 1
 		Clone.MaxVisibleGraphemes = -1
 		Clone.Name = "CloneLabel"
-		Clone.Position = a_6(0.5, 0, 0.5, 0)
+		Clone.Position = UD2new(0.5, 0, 0.5, 0)
 		Clone.RichText = true
 		Clone.Rotation = 0
 		Clone.Selectable = false
-		Clone.Size = a_6(1, 0, 1, 0)
+		Clone.Size = UD2new(1, 0, 1, 0)
 		Clone.Text = Text
-		Clone.TextColor3 = a_1(248, 248, 248)
+		Clone.TextColor3 = fromRGB(248, 248, 248)
 		Clone.TextScaled = true
 		Clone.TextSize = 24
-		Clone.TextStrokeColor3 = a_1(17, 17, 17)
+		Clone.TextStrokeColor3 = fromRGB(17, 17, 17)
 		Clone.TextStrokeTransparency = 0.6
 		Clone.TextTruncate = Enum.TextTruncate.None
 		Clone.TextWrapped = true
@@ -289,9 +308,9 @@ local function AntiAim()
 		local BodyGyro = Instance.new("BodyGyro")
 		BodyGyro.D = 0
 		BodyGyro.P = 5e3
-		BodyGyro.MaxTorque = a_4(0, BodyGyro.P, 0)
+		BodyGyro.MaxTorque = Vec3new(0, BodyGyro.P, 0)
 		BodyGyro.Parent = Torso
-		BodyGyro.CFrame = a_0(BodyGyro:FindFirstAncestorWhichIsA("BasePart").CFrame.Position, (a_9.CFrame * a_0(0, 0, 0)).Position)
+		BodyGyro.CFrame = CFnew(BodyGyro:FindFirstAncestorWhichIsA("BasePart").CFrame.Position, (currentCamera.CFrame * CFnew(0, 0, 0)).Position)
 		RunService.Heartbeat:Wait()
 		BodyGyro:Destroy()
 	end
@@ -299,8 +318,8 @@ end
 
 GameSense:DisplayMessage("Thank you for using GameSense Rewritten!\nSend bug reports to shawnjbragdon#0001", 5, {
 	["TextSize"] = 16,
-	["TextColor3"] = a_1(255, 192, 64),
-	["TextStrokeColor3"] = a_1(17, 17, 17),
+	["TextColor3"] = fromRGB(255, 192, 64),
+	["TextStrokeColor3"] = fromRGB(17, 17, 17),
 	["TextStrokeTransparency"] = 0.75,
 	["Font"] = Enum.Font.GothamBold,
 })
@@ -318,13 +337,13 @@ UITextSizeConstraint.Name = "UITextSizeConstraint"
 UITextSizeConstraint.Parent = TextLabel
 
 local TextLabel = Instance.new("TextLabel")
-TextLabel.AnchorPoint = a_3(0.5, 0.5)
+TextLabel.AnchorPoint = Vec2new(0.5, 0.5)
 TextLabel.Active = false
 TextLabel.Archivable = false
 TextLabel.AutoLocalize = false
-TextLabel.BackgroundColor3 = a_1(248, 248, 248)
+TextLabel.BackgroundColor3 = fromRGB(248, 248, 248)
 TextLabel.BackgroundTransparency = 1
-TextLabel.BorderColor3 = a_1(17, 17, 17)
+TextLabel.BorderColor3 = fromRGB(17, 17, 17)
 TextLabel.BorderMode = Enum.BorderMode.Outline
 TextLabel.BorderSizePixel = 0
 TextLabel.ClipsDescendants = false
@@ -333,16 +352,16 @@ TextLabel.LayoutOrder = 6
 TextLabel.LineHeight = 1
 TextLabel.MaxVisibleGraphemes = -1
 TextLabel.Name = "Credits"
-TextLabel.Position = a_6(0.5, 0, 1, -100)
+TextLabel.Position = UD2new(0.5, 0, 1, -100)
 TextLabel.RichText = false
 TextLabel.Rotation = 0
 TextLabel.Selectable = false
-TextLabel.Size = a_6(0.401, 0, 0.061, 0)
+TextLabel.Size = UD2new(0.401, 0, 0.061, 0)
 TextLabel.Text = string.format("GameSense Rewritten [%s] | shawnjbragdon#0001", GameSense().Version)
-TextLabel.TextColor3 = a_1(248, 248, 248)
+TextLabel.TextColor3 = fromRGB(248, 248, 248)
 TextLabel.TextScaled = true
 TextLabel.TextSize = 16
-TextLabel.TextStrokeColor3 = a_1(17, 17, 17)
+TextLabel.TextStrokeColor3 = fromRGB(17, 17, 17)
 TextLabel.TextStrokeTransparency = 0.6
 TextLabel.TextTruncate = Enum.TextTruncate.None
 TextLabel.TextWrapped = true
@@ -361,28 +380,28 @@ UITextSizeConstraint.Parent = TextLabel
 
 local ImageLabel = Instance.new("ImageLabel")
 ImageLabel.Active = false
-ImageLabel.AnchorPoint = a_3(0.5, 0.5)
+ImageLabel.AnchorPoint = Vec2new(0.5, 0.5)
 ImageLabel.Archivable = false
 ImageLabel.AutoLocalize = false
 ImageLabel.AutomaticSize = Enum.AutomaticSize.None
-ImageLabel.BackgroundColor3 = a_1(248, 248, 248)
+ImageLabel.BackgroundColor3 = fromRGB(248, 248, 248)
 ImageLabel.BackgroundTransparency = 1
-ImageLabel.BorderColor3 = a_1(17, 17, 17)
+ImageLabel.BorderColor3 = fromRGB(17, 17, 17)
 ImageLabel.BorderMode = Enum.BorderMode.Outline
 ImageLabel.BorderSizePixel = 0
 ImageLabel.ClipsDescendants = false
 ImageLabel.Image = "rbxassetid://324848180"
-ImageLabel.ImageRectOffset = a_3(0, 0)
-ImageLabel.ImageColor3 = a_1(255, 64, 64)
-ImageLabel.ImageRectSize = a_3(0, 0)
+ImageLabel.ImageRectOffset = Vec2new(0, 0)
+ImageLabel.ImageColor3 = fromRGB(255, 64, 64)
+ImageLabel.ImageRectSize = Vec2new(0, 0)
 ImageLabel.ImageTransparency = 0.9
 ImageLabel.LayoutOrder = 6
 ImageLabel.Name = "FovGui"
-ImageLabel.Position = a_6(0.5, 0, 0.5, 0)
+ImageLabel.Position = UD2new(0.5, 0, 0.5, 0)
 ImageLabel.Rotation = 0
 ImageLabel.ScaleType = Enum.ScaleType.Fit
 ImageLabel.Selectable = false
-ImageLabel.Size = a_6(0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2, 0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2)
+ImageLabel.Size = UD2new(0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2, 0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2)
 ImageLabel.SizeConstraint = Enum.SizeConstraint.RelativeXY
 ImageLabel.Visible = true
 ImageLabel.ZIndex = 100
@@ -390,19 +409,19 @@ ImageLabel.Parent = ScreenGui
 
 local TextLabel = Instance.new("TextLabel")
 TextLabel.Active = false
-TextLabel.AnchorPoint = a_3(0, 0)
+TextLabel.AnchorPoint = Vec2new(0, 0)
 TextLabel.AutoLocalize = Enum.AutomaticSize.None
-TextLabel.BackgroundColor3 = a_1(17, 17, 17)
+TextLabel.BackgroundColor3 = fromRGB(17, 17, 17)
 TextLabel.BackgroundTransparency = 1
-TextLabel.BorderColor3 = a_1(17, 17, 17)
+TextLabel.BorderColor3 = fromRGB(17, 17, 17)
 TextLabel.BorderMode = Enum.BorderMode.Outline
 TextLabel.BorderSizePixel = 0
 TextLabel.LayoutOrder = 6
 TextLabel.Name = "Indicator"
-TextLabel.Position = a_6(0.5, 0, 0.75, 0)
+TextLabel.Position = UD2new(0.5, 0, 0.75, 0)
 TextLabel.Rotation = 0
 TextLabel.Selectable = false
-TextLabel.Size = a_6(0, 0, 0, 0)
+TextLabel.Size = UD2new(0, 0, 0, 0)
 TextLabel.SizeConstraint = Enum.SizeConstraint.RelativeXY
 TextLabel.Visible = true
 TextLabel.ZIndex = 1
@@ -413,10 +432,10 @@ TextLabel.LineHeight = 1
 TextLabel.MaxVisibleGraphemes = -1
 TextLabel.RichText = false
 TextLabel.Text = "{Sensitivity}"
-TextLabel.TextColor3 = a_1(255, 255, 255)
+TextLabel.TextColor3 = fromRGB(255, 255, 255)
 TextLabel.TextScaled = false
 TextLabel.TextSize = 14
-TextLabel.TextStrokeColor3 = a_1(17, 17, 17)
+TextLabel.TextStrokeColor3 = fromRGB(17, 17, 17)
 TextLabel.TextStrokeTransparency = 0.75
 TextLabel.TextTransparency = 0
 TextLabel.TextTruncate = Enum.TextTruncate.None
@@ -432,16 +451,16 @@ TextBox.Font = Enum.Font.SourceSans
 TextBox.TextScaled = true
 TextBox.TextWrapped = true
 TextBox.BackgroundTransparency = 0.75
-TextBox.BackgroundColor3 = a_1(17, 17, 17)
-TextBox.BorderColor3 = a_1(248, 248, 248)
-TextBox.Size = a_6(0, 50, 0, 20)
+TextBox.BackgroundColor3 = fromRGB(17, 17, 17)
+TextBox.BorderColor3 = fromRGB(248, 248, 248)
+TextBox.Size = UD2new(0, 50, 0, 20)
 TextBox.TextTransparency = 0
 TextBox.TextStrokeTransparency = 0.6
-TextBox.TextColor3 = a_1(248, 248, 248)
+TextBox.TextColor3 = fromRGB(248, 248, 248)
 TextBox.TextSize = 14
 TextBox.PlaceholderText = "#"
 TextBox.Text = tonumber(setting.sens)
-TextBox.Position = a_6(0.5, 0, 1, -80)
+TextBox.Position = UD2new(0.5, 0, 1, -80)
 TextBox.Parent = ScreenGui
 
 local UITextSizeConstraint = Instance.new("UITextSizeConstraint")
@@ -456,14 +475,14 @@ TextLabel.Name = "SensLabel"
 TextLabel.Font = Enum.Font.SourceSans
 TextLabel.TextScaled = true
 TextLabel.TextWrapped = true
-TextLabel.Size = a_6(1, 0, 1, 0)
+TextLabel.Size = UD2new(1, 0, 1, 0)
 TextLabel.BackgroundTransparency = 1
 TextLabel.TextSize = 14
-TextLabel.TextColor3 = a_1(248, 248, 248)
-TextLabel.TextStrokeColor3 = a_1(17, 17, 17)
+TextLabel.TextColor3 = fromRGB(248, 248, 248)
+TextLabel.TextStrokeColor3 = fromRGB(17, 17, 17)
 TextLabel.TextStrokeTransparency = 0.6
 TextLabel.Text = "Sens:"
-TextLabel.Position = a_6(-1, 0, 0, 0)
+TextLabel.Position = UD2new(-1, 0, 0, 0)
 TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 TextLabel.Parent = TextBox
 
@@ -478,7 +497,7 @@ local TextBox = TextBox:Clone()
 TextBox.PlaceholderText = "FOV"
 TextBox.Name = "FovAdjust"
 TextBox.Text = tonumber(setting.fov)
-TextBox.Position = ScreenGui.SensAdjust.Position + a_6(0, 0, 0, 20)
+TextBox.Position = ScreenGui.SensAdjust.Position + UD2new(0, 0, 0, 20)
 TextBox["SensLabel"].Name = "FovLabel"
 TextBox["FovLabel"].Text = "Fov:"
 TextBox.Parent = ScreenGui
@@ -501,7 +520,7 @@ local TextBox = TextBox:Clone()
 TextBox.PlaceholderText = "Drop"
 TextBox.Name = "DropAdjust"
 TextBox.Text = tonumber(setting.drop)
-TextBox.Position = ScreenGui.FovAdjust.Position + a_6(0, 0, 0, 20)
+TextBox.Position = ScreenGui.FovAdjust.Position + UD2new(0, 0, 0, 20)
 TextBox["FovLabel"].Name = "DropLabel"
 TextBox["DropLabel"].Text = "Drop:"
 TextBox.Parent = ScreenGui
@@ -522,7 +541,7 @@ UITextSizeConstraint.Parent = TextBox:FindFirstChildWhichIsA("TextLabel")
 
 local fovgui = ScreenGui["FovGui"]
 local indicator = fovgui["Indicator"]
-local rainbow = a_1(0, 0, 0)
+local rainbow = fromRGB(0, 0, 0)
 
 table.insert(shared.gamesense, ScreenGui.SensAdjust.Focused:Connect(function()
 	ScreenGui.SensAdjust:SetAttribute("LastTextValue", ScreenGui.SensAdjust.Text)	
@@ -533,7 +552,7 @@ table.insert(shared.gamesense, ScreenGui.SensAdjust.FocusLost:Connect(function()
 		ScreenGui.SensAdjust.Text = tonumber(ScreenGui.SensAdjust.Text)
 		setting.sens = tonumber(ScreenGui.SensAdjust.Text)
 		game:GetService("TweenService"):Create(fovgui, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In, 0, false, 0), {
-			["Size"] = a_6(0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2, 0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2) ;
+			["Size"] = UD2new(0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2, 0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2) ;
 		}):Play()
 		GameSense:DisplayMessage(string.format("Adjusted Sensitivity to %s", setting.sens), 2)
 		return
@@ -551,7 +570,7 @@ table.insert(shared.gamesense, ScreenGui.FovAdjust.FocusLost:Connect(function()
 		setting.fov = tonumber(ScreenGui.FovAdjust.Text)
 		coroutine.wrap(function()
 			local Tween = game:GetService("TweenService"):Create(fovgui, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.In, 0, false, 0), {
-				["Size"] = a_6(0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2, 0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2) ;
+				["Size"] = UD2new(0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2, 0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2) ;
 			})
 			Tween:Play()
 			Tween.Completed:Wait()
@@ -668,16 +687,16 @@ local function getnearest()
 	GameSense.Target.Character = nil
 	for _, character in pairs(getenemychars()) do
 		if localplayer.Character and character and character:FindFirstChild("Head") then
-			local Position = a_9:WorldToScreenPoint(character["Head"].Position)
-			local Distance = (a_3(playermouse.X, playermouse.Y) - a_3(Position.X, Position.Y)).Magnitude
-			if Distance <= a_9.ViewportSize.X / (90 / setting.fov) and Distance < Nearest.Distance then
+			local Position = currentCamera:WorldToScreenPoint(character["Head"].Position)
+			local Distance = (Vec2new(playermouse.X, playermouse.Y) - Vec2new(Position.X, Position.Y)).Magnitude
+			if Distance <= currentCamera.ViewportSize.X / (90 / setting.fov) and Distance < Nearest.Distance then
 				local Humanoid = character:FindFirstChildWhichIsA("Humanoid")
 				if Humanoid then
 					if Humanoid.Health <= 0 then
 						continue
 					end
 				end
-				local hit = workspace:FindPartOnRayWithIgnoreList(Ray.new(a_9.CFrame.Position, (character["Head"].CFrame.Position - a_9.CFrame.Position).Unit * 2048), {
+				local hit = workspace:FindPartOnRayWithIgnoreList(Ray.new(currentCamera.CFrame.Position, (character["Head"].CFrame.Position - currentCamera.CFrame.Position).Unit * 2048), {
 					workspace.CurrentCamera,
 					localplayer.Character,
 				})
@@ -695,9 +714,9 @@ task.spawn(function()
 	while true do
 		task.wait(1 / 30)
 		if setting.uianim == true then
-			rainbow = a_2(tick() % 5 / 5, 0.65, 1)
+			rainbow = fromHSV(tick() % 5 / 5, 0.65, 1)
 		else
-			rainbow = a_1(255, 255, 255)
+			rainbow = fromRGB(255, 255, 255)
 		end
 		indicator.TextColor3 = rainbow
 		fovgui.ImageColor3 = rainbow
@@ -718,17 +737,17 @@ end)
 
 playermouse.Move:Connect(function()
 	local Cursor = ScreenGui:FindFirstChild("Cursor") or Instance.new("Frame", ScreenGui)
-	Cursor.AnchorPoint = a_3(0.5, 0.5)
+	Cursor.AnchorPoint = Vec2new(0.5, 0.5)
 	Cursor.Name = "Cursor"
-	Cursor.BackgroundColor3 = rainbow or a_1(248, 248, 248)
+	Cursor.BackgroundColor3 = rainbow or fromRGB(248, 248, 248)
 	Cursor.BackgroundTransparency = 0.5
 	Cursor.BorderSizePixel = 1
-	Cursor.BackgroundColor3 = a_1(248, 248, 248)
+	Cursor.BackgroundColor3 = fromRGB(248, 248, 248)
 	Cursor.Rotation = 45
-	Cursor.Size = a_6(0, 2, 0, 2)
-	Cursor.Position = a_6(a_5(0, playermouse.X), a_5(0, playermouse.Y))
+	Cursor.Size = UD2new(0, 2, 0, 2)
+	Cursor.Position = UD2new(UDnew(0, playermouse.X), UDnew(0, playermouse.Y))
 
-	fovgui.Position = a_6(a_5(0, playermouse.X), a_5(0, playermouse.Y))
+	fovgui.Position = UD2new(UDnew(0, playermouse.X), UDnew(0, playermouse.Y))
 end)
 
 table.insert(shared.gamesense, UserInputService.InputBegan:Connect(function(InputObject, GameProcessedEvent)
@@ -738,13 +757,13 @@ table.insert(shared.gamesense, UserInputService.InputBegan:Connect(function(Inpu
 			GameSense:PlayLocalSound(140910211)
 			if setting.aba == true then
 				GameSense:DisplayMessage("Aimbot <b>Enabled</b>", 2, {
-					["TextColor3"] = a_1(94, 255, 94),
-					["TextStrokeColor3"] = a_1(18, 49, 18),
+					["TextColor3"] = fromRGB(94, 255, 94),
+					["TextStrokeColor3"] = fromRGB(18, 49, 18),
 				})
 			else
 				GameSense:DisplayMessage("Aimbot <b>Disabled</b>", 2, {
-					["TextColor3"] = a_1(255, 94, 89),
-					["TextStrokeColor3"] = a_1(49, 18, 18),
+					["TextColor3"] = fromRGB(255, 94, 89),
+					["TextStrokeColor3"] = fromRGB(49, 18, 18),
 				})
 			end
 		elseif InputObject.KeyCode == setting.keybinds["FreeForAllToggleKey"] then
@@ -752,13 +771,13 @@ table.insert(shared.gamesense, UserInputService.InputBegan:Connect(function(Inpu
 			GameSense:PlayLocalSound(140910211)
 			if setting.ffa == true then
 				GameSense:DisplayMessage("Targeting players on <b>all teams</b>.", 2, {
-					["TextColor3"] = a_1(255, 200, 90),
-					["TextStrokeColor3"] = a_1(49, 47, 17),
+					["TextColor3"] = fromRGB(255, 200, 90),
+					["TextStrokeColor3"] = fromRGB(49, 47, 17),
 				})
 			else
 				GameSense:DisplayMessage("Targeting players on <b>opposing teams</b>.", 2, {
-					["TextColor3"] = a_1(255, 200, 90),
-					["TextStrokeColor3"] = a_1(49, 47, 17),
+					["TextColor3"] = fromRGB(255, 200, 90),
+					["TextStrokeColor3"] = fromRGB(49, 47, 17),
 				})
 			end
 		elseif InputObject.KeyCode == setting.keybinds.esptogkey then
@@ -767,19 +786,19 @@ table.insert(shared.gamesense, UserInputService.InputBegan:Connect(function(Inpu
 			if setting.esp == true then
 				if setting.esp == true then
 					GameSense:DisplayMessage("Extra-Sensory Perception is tracking <b>all players</b>.", 2, {
-						["TextColor3"] = a_1(94, 255, 94),
-						["TextStrokeColor3"] = a_1(18, 49, 18),
+						["TextColor3"] = fromRGB(94, 255, 94),
+						["TextStrokeColor3"] = fromRGB(18, 49, 18),
 					})
 				else
 					GameSense:DisplayMessage("Extra-Sensory Perception is tracking <b>opposing teams</b>.", 2, {
-						["TextColor3"] = a_1(94, 255, 94),
-						["TextStrokeColor3"] = a_1(18, 49, 18),
+						["TextColor3"] = fromRGB(94, 255, 94),
+						["TextStrokeColor3"] = fromRGB(18, 49, 18),
 					})
 				end
 			else
 				GameSense:DisplayMessage("You\'re no longer tracking players.", 2, {
-					["TextColor3"] = a_1(255, 94, 89),
-					["TextStrokeColor3"] = a_1(49, 18, 18),
+					["TextColor3"] = fromRGB(255, 94, 89),
+					["TextStrokeColor3"] = fromRGB(49, 18, 18),
 				})
 			end
 		elseif InputObject.KeyCode == setting.keybinds.chfontkey then
@@ -796,43 +815,43 @@ table.insert(shared.gamesense, UserInputService.InputBegan:Connect(function(Inpu
 			setting.sens = setting.sens + 0.05
 			ScreenGui.SensAdjust.Text = tonumber(setting.sens)
 			GameSense:DisplayMessage(string.format("Added <b>%s</b> to overall sensitivity.", 0.05), 2, {
-				["TextColor3"] = a_1(255, 200, 90),
-				["TextStrokeColor3"] = a_1(49, 47, 17),
+				["TextColor3"] = fromRGB(255, 200, 90),
+				["TextStrokeColor3"] = fromRGB(49, 47, 17),
 			})
 		elseif InputObject.KeyCode == setting.keybinds["SensDecreaseKey"] then
 			setting.sens = setting.sens - 0.05
 			ScreenGui.SensAdjust.Text = tonumber(setting.sens)
 			GameSense:DisplayMessage(string.format("Subtracted <b>%s</b> to overall sensitivity.", 0.05), 2, {
-				["TextColor3"] = a_1(255, 200, 90),
-				["TextStrokeColor3"] = a_1(49, 47, 17),
+				["TextColor3"] = fromRGB(255, 200, 90),
+				["TextStrokeColor3"] = fromRGB(49, 47, 17),
 			})
 		elseif InputObject.KeyCode == setting.keybinds["FOVIncreaseKey"] then
 			setting.fov = setting.fov + 0.05
 			ScreenGui.FovAdjust.Text = tonumber(setting.fov)
 			coroutine.wrap(function()
 				local Tween = game:GetService("TweenService"):Create(fovgui, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.In, 0, false, 0), {
-					["Size"] = a_6(0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2, 0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2) ;
+					["Size"] = UD2new(0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2, 0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2) ;
 				})
 				Tween:Play()
 				Tween.Completed:Wait()
 			end)()
 			GameSense:DisplayMessage(string.format("Added <b>%s</b> to overall field of view.", 0.05), 2, {
-				["TextColor3"] = a_1(255, 200, 90),
-				["TextStrokeColor3"] = a_1(49, 47, 17),
+				["TextColor3"] = fromRGB(255, 200, 90),
+				["TextStrokeColor3"] = fromRGB(49, 47, 17),
 			})
 		elseif InputObject.KeyCode == setting.keybinds["FOVDecreaseKey"] then
 			setting.fov = setting.fov - 0.05
 			ScreenGui.FovAdjust.Text = tonumber(setting.fov)
 			coroutine.wrap(function()
 				local Tween = game:GetService("TweenService"):Create(fovgui, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.In, 0, false, 0), {
-					["Size"] = a_6(0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2, 0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2) ;
+					["Size"] = UD2new(0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2, 0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2) ;
 				})
 				Tween:Play()
 				Tween.Completed:Wait()
 			end)()
 			GameSense:DisplayMessage(string.format("Subtracted <b>%s</b> from overall field of view.", 0.05), 2, {
-				["TextColor3"] = a_1(255, 200, 90),
-				["TextStrokeColor3"] = a_1(49, 47, 17),
+				["TextColor3"] = fromRGB(255, 200, 90),
+				["TextStrokeColor3"] = fromRGB(49, 47, 17),
 			})
 		end
 		return
@@ -840,12 +859,12 @@ table.insert(shared.gamesense, UserInputService.InputBegan:Connect(function(Inpu
 		if fovgui.Visible then
 			coroutine.wrap(function()
 				local Tween = game:GetService("TweenService"):Create(fovgui, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.In, 0, false, 0), {
-					["Size"] = a_6(0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2.35, 0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2.35) ;
+					["Size"] = UD2new(0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2.35, 0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2.35) ;
 				})
 				Tween:Play()
 				Tween.Completed:Wait()
 				local Tween = game:GetService("TweenService"):Create(fovgui, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.In, 0, false, 0), {
-					["Size"] = a_6(0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2, 0, (a_9.ViewportSize.X / (90 / setting.fov)) * 2) ;
+					["Size"] = UD2new(0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2, 0, (currentCamera.ViewportSize.X / (90 / setting.fov)) * 2) ;
 				})
 				Tween:Play()
 				Tween.Completed:Wait()
@@ -864,7 +883,7 @@ table.insert(shared.gamesense, UserInputService.InputEnded:Connect(function(Inpu
 end))
 
 local headlockframe
-local currentcolor = a_1(248, 248, 248)
+local currentcolor = fromRGB(248, 248, 248)
 local highlights = {}
 local hfolder = Instance.new('Folder', ScreenGui)
 
@@ -874,13 +893,13 @@ RunService.Heartbeat:Connect(function()
 	elseif setting["AimPriority"] == 2 then
 		indicator.Text = string.format("FOV: %s\n{Sensitivity}\n{Aiming}", tostring(setting.fov))
 	end
-	indicator.Text = b_1(indicator.Text, "{Sensitivity}", string.format("Sensitivity: %s", tostring(setting.sens)))
+	indicator.Text = s_gsub(indicator.Text, "{Sensitivity}", string.format("Sensitivity: %s", tostring(setting.sens)))
 	if MouseButtonsDown.MouseButton2 == true and setting.aba == true then
 		local Nearest = getnearest()
 		if Nearest and typeof(Nearest) == "table" and Nearest.Character then
 			local Head = Nearest.Character:FindFirstChild("Head") or Nearest.Character:FindFirstChild("Torso") or Nearest.Character:FindFirstChild("HumanoidRootPart")
-			local HeadPosition, IsInBounds = a_9:WorldToScreenPoint(Nearest.Character["Head"].Position + a_4(0, Nearest.Distance / (100 / setting.drop), 0))
-			local PredictedMousePosition = a_3((HeadPosition.X - playermouse.X) * setting.sens, (HeadPosition.Y - playermouse.Y) * setting.sens)
+			local HeadPosition, IsInBounds = currentCamera:WorldToScreenPoint(Nearest.Character["Head"].Position + Vec3new(0, Nearest.Distance / (100 / setting.drop), 0))
+			local PredictedMousePosition = Vec2new((HeadPosition.X - playermouse.X) * setting.sens, (HeadPosition.Y - playermouse.Y) * setting.sens)
 			if IsInBounds == true then
 				pcall(function()
 					if setting.hideui ~= true then
@@ -888,15 +907,15 @@ RunService.Heartbeat:Connect(function()
 						if not ScreenGui:FindFirstChild("AimPos") then
 							headlockframe.Name = "AimPos"
 							headlockframe.BorderSizePixel = 1
-							headlockframe.BorderColor3 = a_1(17, 17, 17)
+							headlockframe.BorderColor3 = fromRGB(17, 17, 17)
 							headlockframe.BackgroundTransparency = 0
-							headlockframe.BackgroundColor3 = a_1(248, 248, 248)
+							headlockframe.BackgroundColor3 = fromRGB(248, 248, 248)
 							headlockframe.Rotation = 45
 							headlockframe.ZIndex = 4
-							headlockframe.Size = a_6(0, 3, 0, 3)
+							headlockframe.Size = UD2new(0, 3, 0, 3)
 							headlockframe.Parent = ScreenGui
 						end
-						headlockframe.Position = a_6(0, HeadPosition.X - headlockframe.AbsoluteSize.X / 2, 0, HeadPosition.Y - headlockframe.AbsoluteSize.Y / 2)
+						headlockframe.Position = UD2new(0, HeadPosition.X - headlockframe.AbsoluteSize.X / 2, 0, HeadPosition.Y - headlockframe.AbsoluteSize.Y / 2)
 						headlockframe.Visible = true
 					end
 				end)
@@ -904,11 +923,11 @@ RunService.Heartbeat:Connect(function()
 				GameSense.Target.Character = Nearest.Character
 			end
 		end
-		indicator.Text = b_1(indicator.Text, "\n{Aiming}", "\nAiming")
+		indicator.Text = s_gsub(indicator.Text, "\n{Aiming}", "\nAiming")
 	else
 		GameSense.Target.Character = nil
-		pcall(function() headlockframe.Visible = false end)
-		indicator.Text = b_1(indicator.Text, "\n{Aiming}", "")
+		if headlockframe then headlockframe.Visible = false end
+		indicator.Text = s_gsub(indicator.Text, "\n{Aiming}", "")
 	end
 	if setting.esp and setting.hideui ~= true then
 		local enemies = getenemychars()
@@ -923,7 +942,7 @@ RunService.Heartbeat:Connect(function()
 			local head = character:FindFirstChild('Head')
 			if typeof(head) == 'Instance' and head:IsA('BasePart') then
 				local obscuringparts = {}
-				local x = a_9:GetPartsObscuringTarget({a_9.CFrame.Position, head.Position}, {character, localplayer.Character, a_9})
+				local x = currentCamera:GetPartsObscuringTarget({currentCamera.CFrame.Position, head.Position}, {character, localplayer.Character, currentCamera})
 				if typeof(phantomforces) ~= 'nil' then
 					for _, part in pairs(x) do
 						if typeof(part) == 'Instance' and part:IsA('BasePart') and part.Name ~= 'Window' then
